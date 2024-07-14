@@ -1,0 +1,195 @@
+FieldId,Value,highLights,TrustCount-1,TrustCount-2,TrustCount-3,Verified-1,Edited-1
+age,49,[object Object],88,74,85,True,False
+sex,male,[object Object]|[object Object]|[object Object],71,77,4,False,False
+wakeUpStrokeCheck,false,[object Object],65,73,80,True,False
+wakeUpStrokeUnCheck,true,[object Object],67,71,62,True,False
+wakeUpDate,,,75,60,67,False,False
+strokeCheck,false,[object Object],89,69,0,True,False
+strokeUnCheck,true,[object Object],68,85,0,True,False
+firstAttented,outpatient_clinic,,90,80,66,False,False
+arrivalDate,2021-02-09,[object Object],76,62,79,True,False
+arrivalTime,13:50,[object Object],44,67,65,True,False
+onsetDate,2021-02-09,[object Object],44,83,47,True,False
+onsetTime,13:00,[object Object],60,89,61,False,False
+arrivedFrom,ems,[object Object],7,13,61,True,False
+hospitalizedIn,icu,[object Object],64,78,76,True,False
+department,neurology,[object Object],78,90,60,True,False
+radioMedicalHistoryYes,false,,62,62,87,True,False
+radioMedicalHistoryNone,false,,75,72,60,True,False
+radioMedicalHistoryUnknown,false,,83,74,74,True,False
+checkBoxMedicalHistoryHypertension,true,[object Object],83,74,88,True,False
+checkBoxMedicalHistoryDiabetes,false,,75,90,78,True,False
+checkBoxMedicalHistoryHyperlipidemia,false,,79,62,83,True,False
+checkBoxMedicalHistoryActiveSmoker,false,,81,67,79,True,False
+checkBoxMedicalHistoryPreviousIschemic,false,,79,76,65,True,False
+checkBoxMedicalHistoryPreviousHemorrhage,false,,68,86,60,True,False
+checkBoxMedicalHistoryAtrialFibrillation,false,,75,61,72,True,False
+checkBoxMedicalHistoryCoronaryArtery,false,,79,80,80,True,False
+checkBoxMedicalHistoryCongestiveHeartFailure,false,,67,84,81,True,False
+checkBoxMedicalHistoryHIV,false,,83,60,87,True,False
+checkBoxMedicalHistoryCOVIDPositive,false,,69,3,60,True,False
+radioTreatmentEventYes,false,,31,74,78,True,False
+radioTreatmentEventNone,false,,80,77,79,True,False
+radioTreatmentEventUnknown,false,,62,82,71,True,False
+checkBoxTreatmentEventAntidiabetics,false,,61,70,72,True,False
+checkBoxTreatmentEventAntihypertensives,true,[object Object],86,43,75,True,False
+checkBoxTreatmentEventAntiplatelets,false,,88,84,73,True,False
+checkBoxTreatmentEventAnticoagulants,false,,62,85,80,True,False
+checkBoxTreatmentEventHormonalContraception,false,,73,75,88,True,False
+checkBoxTreatmentEventStatin,false,,77,74,77,True,False
+glucose,5.55,[object Object],55,81,66,True,False
+cholesterol,2.85,[object Object],66,65,65,True,False
+systolic,155,[object Object],21,89,60,True,False
+diastolic,99,[object Object],89,83,63,True,False
+nihss,3,[object Object],89,62,81,True,False
+mrs,0,[object Object],90,6,69,True,False
+firstInrTesting,lab,[object Object],73,75,75,True,False
+coma,,,67,89,90,False,False
+brainImaging,cta,[object Object],69,80,70,True,False
+imagingDate,2021-02-02,,87,79,90,True,False
+imagingTime,2021-02-02T13:47:00+01:00,[object Object],75,88,76,False,False
+radioInfarctsYes,false,,89,64,80,False,False
+radioInfarctsNo,true,,80,15,84,False,False
+checkBoxInfarctsCortical,false,,89,90,82,False,False
+checkBoxInfarctsSubCortical,false,,67,69,77,False,False
+checkBoxBrainstem,false,,88,70,86,False,False
+typeStroke,is,[object Object]|[object Object],75,69,67,False,False
+aspectScore,,,83,78,75,False,False
+radioArterialYes,false,,22,66,63,False,False
+radioArterialNo,true,,71,84,63,False,False
+checkBoxArterialMCA1Left,false,,74,77,88,False,False
+checkBoxArterialMCA2Left,false,,88,70,78,False,False
+checkBoxArterialMCA3Left,false,,78,80,77,False,False
+checkBoxArterialACA,false,,65,74,85,False,False
+checkBoxArterialPCA1Left,false,,65,75,71,False,False
+checkBoxArterialPCA2Left,false,,69,85,64,False,False
+checkBoxArterialCEALeft,false,,66,67,70,False,False
+checkBoxArterialCIALeft,false,,71,85,76,False,False
+checkBoxArterialVertebral,false,,81,80,77,False,False
+checkBoxArterialMCA1Right,false,,68,81,71,False,False
+checkBoxArterialMCA2Right,false,,81,88,73,False,False
+checkBoxArterialMCA3Right,false,,74,82,12,False,False
+checkBoxArterialACARight,false,,65,86,83,False,False
+checkBoxArterialPCA1Right,false,,82,65,76,False,False
+checkBoxArterialPCA2Right,true,,72,87,80,False,False
+checkBoxArterialCEARight,false,,73,89,85,False,False
+checkBoxArterialCIARight,false,,60,71,63,False,False
+checkBoxArterialBasilar,false,,10,69,81,False,False
+radioThrombolysisCheck,false,[object Object]|[object Object],88,70,67,False,False
+radioThrombolysisUnCheck,false,[object Object]|[object Object],83,81,79,False,False
+thrombolysisReason,,,77,85,62,False,False
+thrombolysisDate,,,72,82,70,False,False
+drugUsed,alteplase,,69,87,6,False,False
+radioAnticoagulantYes,false,,70,90,69,False,False
+radioAnticoagulantNo,true,,75,61,76,False,False
+treatmentDose,80,[object Object],85,57,74,False,False
+bolusDate,2021-02-09,[object Object],62,82,87,False,False
+thrombolysisGiven,,,78,67,84,False,False
+thrombectomyCheck,false,,78,67,84,False,False
+thrombectomyUnCheck,false,,78,67,84,False,False
+thrombectomyReason,,,69,75,69,False,False
+thrombectomyDate,,,12,62,77,False,False
+groinDate,,,89,61,72,False,False
+mTICIScore,,,89,61,72,False,False
+reperfusionDate,,,83,80,86,False,False
+radioThrombectomyYes,false,,82,74,60,False,False
+radioThrombectomyNo,true,,67,73,74,False,False
+checkBoxThrombectomyVesselPerforation,false,,86,82,89,False,False
+checkBoxThrombectomyDissection,false,,86,82,89,False,False
+checkBoxThrombectomyEmbolization,false,,73,72,63,False,False
+checkBoxThrombectomyHematoma,false,,60,70,16,False,False
+checkBoxThrombectomyOther,false,,16,70,90,False,False
+bleedingVolume,false,,71,61,71,False,False
+infratentorialCheck,false,,67,71,77,False,False
+infratentorialUnCheck,false,,67,77,79,False,False
+bleedingCheck,false,,70,70,73,False,False
+bleedingUnCheck,false,,79,80,63,False,False
+intraventricularCheck,false,,17,6,78,False,False
+intraventricularUnCheck,false,,72,73,83,False,False
+radioBleedingReasonYes,false,,71,85,88,False,False
+radioBleedingReasonNo,true,,12,76,71,False,False
+checkBoxBleedingReasonArterialHypertension,false,,66,75,68,False,False
+checkBoxBleedingReasonAneurysm,false,,86,36,76,False,False
+checkBoxBleedingReasonArteriovenousMalformation,false,,71,86,89,False,False
+checkBoxBleedingReasonAnticoagulationTherapy,false,,70,80,75,False,False
+checkBoxBleedingReasonAmyloidAngiopathy,false,,87,75,80,False,False
+checkBoxBleedingReasonOther,false,,76,78,68,False,False
+antidoteAnticoagulants,,,78,87,66,False,False
+radioNeurosurgeryYes,false,,78,87,66,False,False
+radioNeurosurgeryNo,true,,86,77,75,False,False
+checkBoxNeurosurgeryIntracranialHematomaEvacuation,false,,2,81,75,False,False
+checkBoxNeurosurgeryExternalVentricularDrainage,false,,89,76,85,False,False
+checkBoxNeurosurgeryDecompresiveCraniectomy,false,,87,62,83,False,False
+clinicalSymptoms,,,79,65,70,False,False
+symptomsDuration,,,88,79,34,False,False
+bleedingSubarachnoidCheck,false,,74,81,62,False,False
+bleedingSubarachnoidUnCheck,false,,44,69,67,False,False
+huntHess,,,75,45,60,False,False
+radioInterventionYes,false,,68,70,80,False,False
+radioInterventionNo,true,,79,74,78,False,False
+checkBoxInterventionEndovascular,false,,85,68,81,False,False
+checkBoxInterventionNeurosurgical,false,,89,71,87,False,False
+checkBoxInterventionVentricularDrainage,false,,88,83,66,False,False
+checkBoxInterventionDecompressiveCraniectomy,false,,90,62,78,False,False
+checkBoxInterventionOther,false,,85,89,87,False,False
+nimodipineTreatment,,,66,80,63,False,False
+radioTreatmentPerformedYes,false,,37,87,76,False,False
+radioTreatmentPerformedNo,true,,77,89,57,False,False
+checkBoxTreatmentPerformedAnticoagulation,false,,83,86,89,False,False
+checkBoxTreatmentPerformedThrombectomy,false,,81,73,21,False,False
+checkBoxTreatmentPerformedThrombolysis,false,,79,66,30,False,False
+checkBoxTreatmentPerformedNeurosurgical,false,,83,62,72,False,False
+radioThrombolysisMimicCheck,false,[object Object]|[object Object],80,89,79,False,False
+radioThrombolysisMimicUnCheck,false,[object Object]|[object Object],82,71,77,False,False
+drugUsedThrombolysis,alteplase,[object Object],11,66,63,False,False
+radioAnticoagulantMimicsYes,false,,23,72,62,False,False
+radioAnticoagulantMimicsNo,true,,81,84,89,False,False
+treatmentDoseMimics,80,[object Object],64,74,68,False,False
+bolusMimicDate,2021-02-09,[object Object],65,66,67,False,False
+finalDiagnosis,,,71,62,84,False,False
+ctmrPerfusion,,,61,86,60,False,False
+coreVolume,,,82,67,83,False,False
+hypoperfusionVolume,,,75,73,85,False,False
+dischargeDestination,home,[object Object]|[object Object],51,72,61,False,False
+dischargeDestinationFacility,,,77,80,66,False,False
+dischargeFacility,,,66,71,71,False,False
+dischargeDate,,,89,87,89,False,False
+mrsScore,0,[object Object],83,85,70,False,False
+discharge,,,62,63,73,False,False
+radioTreatmentPrescribedYes,false,,71,67,78,False,False
+radioTreatmentPrescribedNo,false,,81,75,88,False,False
+checkBoxTreatmentPrescribedAntidiabetics,false,,84,90,86,False,False
+checkBoxTreatmentPrescribedAntihypertensives,false,,85,79,89,False,False
+checkBoxTreatmentPrescribedAntiplatelets,false,,62,80,86,False,False
+checkBoxTreatmentPrescribedAnticoagulants,true,,86,77,64,False,False
+checkBoxTreatmentPrescribedAnticoagulantPlanned,false,,68,14,79,False,False
+checkBoxTreatmentPrescribedStatin,true,,87,6,66,False,False
+checkBoxTreatmentPrescribedOther,false,,16,80,80,False,False
+appointmentScheduled,recommended,[object Object],16,80,80,False,False
+smokingCessation,not_smoker,[object Object],74,5,61,False,False
+hospitalised24Hour,,,65,65,89,False,False
+radioVentilatedYes,false,,86,45,0,False,False
+radioVentilatedNo,false,,13,71,0,False,False
+radioCraniectomyYes,false,,85,86,72,False,False
+radioCraniectomyNo,false,,65,83,86,False,False
+radioThromboembolismYes,false,,67,79,74,False,False
+radioThromboembolismNo,true,,61,90,75,False,False
+checkBoxThromboembolismUFH,false,,82,78,63,False,False
+checkBoxThromboembolismLMWH,false,,65,81,72,False,False
+checkBoxThromboembolismIPC,false,,74,88,76,False,False
+checkBoxThromboembolismGCS,false,,60,77,58,False,False
+checkBoxThromboembolismVTE,false,,90,64,11,False,False
+checkBoxThromboembolismVFP,false,,82,72,90,False,False
+checkBoxThromboembolismXaVTE,false,,17,75,62,False,False
+checkBoxThromboembolismOther,false,,67,81,68,False,False
+radioStrokeCompYes,false,,64,81,90,False,False
+radioStrokeCompNo,false,,74,89,78,False,False
+radioStrokeCompUnknown,false,,64,74,67,False,False
+checkBoxStrokeCompPneumonia,false,,72,70,88,False,False
+checkBoxStrokeCompDVT,false,,68,88,87,False,False
+checkBoxStrokeCompPulmonary,false,,60,90,90,False,False
+checkBoxStrokeCompUrinary,false,,66,79,90,False,False
+checkBoxStrokeCompSores,false,,90,67,60,False,False
+checkBoxStrokeCompSepsis,false,,62,66,87,False,False
+checkBoxStrokeCompRecurrence,false,,77,87,61,False,False
+checkBoxStrokeCompOther,false,,24,79,84,False,False

@@ -1,0 +1,780 @@
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+options(scipen=999)
+
+library(ggplot2)
+library(tidymodels)
+library(skimr)
+library(modelr)
+library(stringr)
+library(corrplot)
+library(RColorBrewer)
+library("PerformanceAnalytics")
+library("Hmisc")
+library(lubridate)
+library(ggbeeswarm)
+library(GGally)
+library(effsize)
+library(magrittr)
+library(cowplot)
+library(ggpubr)
+library(ggpmisc)
+library(tibble)
+
+library(quantreg)
+library(psych)
+library(ggExtra)
+library(tidyverse)
+
+library(dplyr)
+library(lme4)
+
+```
+
+```{r import data}
+df <- read.csv("data.csv", fileEncoding="UTF-8-BOM")
+
+
+fix_firstlast <- read.csv("fixation_firstlast.csv", fileEncoding="UTF-8-BOM")
+condition_vector <- rep(c("P", "C"), length.out = nrow(fix_firstlast))
+fix_firstlast$Condition <- condition_vector
+
+#fixation_p1 <- read.csv("P1.csv", fileEncoding="UTF-8-BOM")
+#fixation_p2 <- read.csv("P2.csv", fileEncoding="UTF-8-BOM")
+#fixation_p3 <- read.csv("P3.csv", fileEncoding="UTF-8-BOM")
+#fixation_p4 <- read.csv("P4.csv", fileEncoding="UTF-8-BOM")
+
+
+folder_path <- "dist_spd"
+csv_files <- list.files(folder_path, pattern = "*.csv")
+combined_data <- data.frame()
+for (csv_file in csv_files) {
+  participant_number <- as.numeric(sub("[PC](\\d+)\\.csv", "\\1", csv_file))
+  condition <- ifelse(participant_number %% 2 == 1, "P", "C")
+  data <- read.csv(file.path(folder_path, csv_file))
+  data$ParticipantNumber <- participant_number
+  data$Condition <- condition
+  combined_data <- rbind(combined_data, data)
+}
+
+percentages <- read.csv("percentages.csv", fileEncoding="UTF-8-BOM")
+percentages$Condition <- condition_vector
+
+ACCdata <- read.csv("ACCdata.csv", fileEncoding="UTF-8-BOM")
+
+completeness <- read.csv("Percentage-Verified.csv", fileEncoding="UTF-8-BOM")
+
+saccades <- read.csv("saccades.csv", fileEncoding="UTF-8-BOM")
+
+blinks <- read.csv("blinks.csv", fileEncoding="UTF-8-BOM")
+
+```
+
+```{r skim}
+df$SA1_SA2_mean <- rowMeans(df[, c("SA1", "SA2")])
+df$SA3_SA4_mean <- rowMeans(df[, c("SA3", "SA4")])
+df$SA5_SA6_mean <- rowMeans(df[, c("SA5", "SA6")])
+
+df <- cbind(df, ACCdata)
+
+df%>% skim()
+
+df %>% group_by(Conditon) %>% skim()
+```
+
+```{r Agency comparison across cons}
+wilcox.test(SA1~Conditon,data = df, paired=F)
+wilcox.test(SA2~Conditon,data = df, paired=F)
+wilcox.test(SA3~Conditon,data = df, paired=F)
+wilcox.test(SA4~Conditon,data = df, paired=F)
+wilcox.test(SA5~Conditon,data = df, paired=F)
+wilcox.test(SA6~Conditon,data = df, paired=F)
+
+t.test(SA1~Conditon,data = df, paired=F)
+ggplot(df, aes(y=SA1, x=Conditon, color=Conditon)) + geom_violin() + geom_boxplot(width=0.1) + theme_bw() + ylim(0,5)
+
+t.test(SA2~Conditon,data = df, paired=F)
+t.test(SA3~Conditon,data = df, paired=F)
+t.test(SA4~Conditon,data = df, paired=F)
+t.test(SA5~Conditon,data = df, paired=F)
+t.test(SA6~Conditon,data = df, paired=F)
+
+df$SA1_SA2_mean <- rowMeans(df[, c("SA1", "SA2")])
+df$SA3_SA4_mean <- rowMeans(df[, c("SA3", "SA4")])
+df$SA5_SA6_mean <- rowMeans(df[, c("SA5", "SA6")])
+
+t.test(SA1_SA2_mean~Conditon,data = df, paired=F)
+t.test(SA3_SA4_mean~Conditon,data = df, paired=F)
+t.test(SA5_SA6_mean~Conditon,data = df, paired=F)
+
+summary(lm(SA1_SA2_mean~SA3_SA4_mean*condition,data = df))
+
+```
+
+```{r correlations}
+cor.test(df$SA1_SA2_mean, df$SA3_SA4_mean)
+cor.test(df$SA1_SA2_mean, df$SA5_SA6_mean)
+cor.test(df$SA5_SA6_mean, df$SA3_SA4_mean)
+
+ggplot(df, aes(y=SA1_SA2_mean, x=SA3_SA4_mean, color=Conditon)) + geom_jitter() + ylim(0,5) + geom_smooth(method =lm, se=F) + xlim(0,5) + theme_bw()
+
+ggplot(df, aes(y=SA1_SA2_mean, x=SA5_SA6_mean, color=Conditon)) + geom_jitter() + ylim(0,5) + geom_smooth(method =lm, se=F) + xlim(0,5) + theme_bw()
+
+ggplot(df, aes(y=SA5_SA6_mean, x=SA3_SA4_mean, color=Conditon)) + geom_jitter() + ylim(0,5) + geom_smooth(method =lm, se=F) + xlim(0,5) + theme_bw()
+
+df_P <- subset(df, Conditon == "P")
+
+# Filter dataframe for condition C
+df_C <- subset(df, Conditon == "C")
+
+# Calculate correlation matrix and p-values for condition P
+correlation_P <- rcorr(as.matrix(df_P[, c("SA1_SA2_mean", "SA3_SA4_mean", "SA5_SA6_mean")]))
+correlation_matrix_P <- correlation_P$r
+p_values_P <- correlation_P$P
+
+# Calculate correlation matrix and p-values for condition C
+correlation_C <- rcorr(as.matrix(df_C[, c("SA1_SA2_mean", "SA3_SA4_mean", "SA5_SA6_mean")]))
+correlation_matrix_C <- correlation_C$r
+p_values_C <- correlation_C$P
+
+# Display the correlation matrices and p-values
+print("Correlation matrix for condition P:")
+print(correlation_matrix_P)
+print("P-values for condition P:")
+print(p_values_P)
+
+print("Correlation matrix for condition C:")
+print(correlation_matrix_C)
+print("P-values for condition C:")
+print(p_values_C)
+
+summary(lm(SA1_SA2_mean ~ SA3_SA4_mean*Conditon, data = df))
+
+
+df_filtered <- df %>% select(-Conditon,-condition,-Participant, -SA1, -SA2, -SA3, -SA4, -SA5, -SA6)
+# Calculate the correlation matrix and p-values
+correlation_results <- rcorr(as.matrix(df_filtered))
+
+# Extract the correlation matrix
+correlation_matrix <- correlation_results$r
+
+# Extract the p-values matrix
+p_values_matrix <- correlation_results$P
+
+# Define significance level
+significance_level <- 0.05
+
+# Extract the names of the columns
+col_names <- colnames(df_filtered)
+
+# Initialize a list to store significant correlations
+significant_correlations_list <- list()
+
+# Loop through the correlation matrix to find significant correlations
+for (i in 1:(ncol(correlation_matrix) - 1)) {
+  for (j in (i + 1):ncol(correlation_matrix)) {
+    if (!is.na(p_values_matrix[i, j]) && p_values_matrix[i, j] < significance_level) {
+      significant_correlations_list <- append(significant_correlations_list, list(
+        list(
+          var1 = col_names[i],
+          var2 = col_names[j],
+          r_value = correlation_matrix[i, j],
+          p_value = p_values_matrix[i, j]
+        )
+      ))
+    }
+  }
+}
+
+# Convert the list to a dataframe for better readability
+significant_correlations_df <- do.call(rbind, lapply(significant_correlations_list, as.data.frame))
+
+# Display the dataframe of significant correlations
+print("Significant correlations:")
+print(significant_correlations_df)
+```
+
+```{r NASA-TLX comparison across cons}
+shapiro.test(df$TLX1)
+shapiro.test(df$TLX2) #NOT NORMAL
+shapiro.test(df$TLX3) #NOT NORMAL
+shapiro.test(df$TLX4)
+shapiro.test(df$TLX5) #NOT NORMAL
+
+
+
+wilcox.test(TLX1~Conditon,data = df, paired=F)
+wilcox.test(TLX2~Conditon,data = df, paired=F)
+wilcox.test(TLX3~Conditon,data = df, paired=F)
+wilcox.test(TLX4~Conditon,data = df, paired=F) 
+wilcox.test(TLX5~Conditon,data = df, paired=F) #RESULT
+
+t.test(TLX1~Conditon,data = df, paired=F)
+t.test(TLX2~Conditon,data = df, paired=F)
+t.test(TLX3~Conditon,data = df, paired=F)
+t.test(TLX4~Conditon,data = df, paired=F) #RESULT
+t.test(TLX5~Conditon,data = df, paired=F)
+```
+
+```{r NASA-TLX Visualisations}
+
+selected_data <- df %>%
+  select(Participant, Conditon, contains("TLX"))
+
+data_long <- selected_data %>%
+  gather(Item, Score, -Participant, -Conditon)
+
+summary_data <- data_long %>%
+  group_by(Item, Conditon) %>%
+  dplyr::summarize(
+    Mean_Score = mean(Score),
+    SE_Score = sd(Score) / sqrt(n())
+  )
+
+
+
+ggplot(summary_data, aes(x = Item, y = Mean_Score, fill = Conditon)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_errorbar(aes(ymin = Mean_Score - SE_Score, ymax = Mean_Score + SE_Score), position = position_dodge(width = 0.9), width = 0.25) +
+  labs(title = "TLX Scores by Condition",
+       x = NULL,
+       y = NULL) +
+  scale_fill_manual(values = c("P" = "#56B4E9", "C" = "#009E73"), name = "Condition", labels = c("Percentage", "Colour")) +
+  scale_y_continuous(limits = c(0, 100)) +  # Set y-axis limits to 0-100
+  scale_x_discrete(labels = c("Mental demand", "Temportal demand", "Performance", "Frustration", "Effort")) +  # Change x-axis labels
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + # Rotate x-axis labels for better readability
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),legend.position = c(0.92, 0.85),legend.background = element_rect(fill = "white", color = "black"))
+
+
+```
+
+```{r Acceptance comparison across cons}
+t.test(ACC1~Conditon,data = df, paired=F)
+t.test(ACC2~Conditon,data = df, paired=F)
+t.test(ACC3~Conditon,data = df, paired=F)
+t.test(ACC4~Conditon,data = df, paired=F)
+t.test(ACC5~Conditon,data = df, paired=F)
+t.test(ACC6~Conditon,data = df, paired=F)
+t.test(ACC7~Conditon,data = df, paired=F)
+t.test(ACC8~Conditon,data = df, paired=F)
+t.test(ACC9~Conditon,data = df, paired=F)
+
+ACCdata$condition <- ifelse(seq_len(nrow(ACCdata)) %% 2 == 1, "P", "C")
+t.test(Usefulness~condition,data = ACCdata, paired=F)
+t.test(Satisfying~condition,data = ACCdata, paired=F)
+
+tACCdata <- t(ACCdata)
+
+data_long <- ACCdata %>%
+  gather(Item, Score)
+
+summary_data <- data_long %>%
+  group_by(Item) %>%
+  dplyr::summarize(
+    Mean_Score = mean(Score),
+    SE_Score = sd(Score) / sqrt(n())
+  )
+
+ggplot(summary_data, aes(x = Item, y = Mean_Score, fill = Item)) +
+  geom_bar(stat = "identity", position = "dodge", width=0.25) +
+  geom_errorbar(aes(ymin = Mean_Score - SE_Score, ymax = Mean_Score + SE_Score), position = position_dodge(width = 0.9), width = 0.1) +
+  labs(title = "System acceptability scores",
+       x = NULL,
+       y = NULL) +
+  scale_fill_manual(values = c("Usefulness" = "#56B4E9", "Satisfying" = "#009E73"), name = "Item", labels = c("Usefulness", "Satisfaction")) +
+  scale_y_continuous(limits = c(-2, 2)) +  # Set y-axis limits to 0-100
+  #scale_x_discrete(labels = c("Mental demand", "Temportal demand", "Performance", "Frustration", "Effort")) +  # Change x-axis labels
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + # Rotate x-axis labels for better readability
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),legend.position = c(0.92, 0.85),legend.background = element_rect(fill = "white", color = "black")) + 
+  geom_hline(yintercept =0)
+```
+
+```{r fixation comparison}
+fix_firstlast %>% group_by(Condition) %>% skim()
+
+fix_firstlast %>% skim()
+
+fix_firstlast$File <- as.factor(fix_firstlast$File)
+
+t.test(Avg_Duration_Last_Minute~Condition, data=fix_firstlast, paired=F)
+cohen.d(Avg_Duration_Last_Minute~Condition, data=fix_firstlast)
+fix_firstlast$File <- factor(fix_firstlast$File)
+fix_firstlast$Condition <- factor(fix_firstlast$Condition)
+lm_result <- lm(Avg_Duration_First_Minute ~ Condition, data = fix_firstlast)
+summary(lm_result)
+
+
+t.test(Avg_Duration_First_Minute~Condition, data=fix_firstlast, paired=F)
+wilcox.test(Avg_Duration_Last_Minute~Condition, data=fix_firstlast, paired=F)
+wilcox.test(Avg_Duration_First_Minute~Condition, data=fix_firstlast, paired=F)
+
+t.test(median_Duration_Last_Minute~Condition, data=fix_firstlast, pair=F)
+t.test(median_Duration_First_Minute~Condition, data=fix_firstlast, paired=F)
+wilcox.test(median_Duration_Last_Minute~Condition, data=fix_firstlast, paired=F)
+wilcox.test(median_Duration_First_Minute~Condition, data=fix_firstlast, paired=F)
+
+ggplot(fix_firstlast, aes(y=Avg_Duration_Last_Minute, x=Condition, color=Condition)) + geom_violin() + geom_boxplot(width=0.1) + theme_bw() + ylim(200,1000)
+
+wilcox.test(fix_firstlast$Avg_Duration_First_Minute,fix_firstlast$Avg_Duration_Last_Minute, paired=F)
+t.test(fix_firstlast$Avg_Duration_First_Minute,fix_firstlast$Avg_Duration_Last_Minute, paired=F)
+
+wilcox.test(fix_firstlast$median_Duration_First_Minute,fix_firstlast$median_Duration_Last_Minute, paired=F)
+
+
+# Reshape the data from wide to long format
+fix_firstlast_long <- gather(fix_firstlast, key = "Minute_Type", value = "Average_Duration", Avg_Duration_First_Minute, Avg_Duration_Last_Minute)
+
+# Create the boxplot
+ggplot(fix_firstlast_long, aes(x = Minute_Type, y = Average_Duration, fill = Minute_Type)) +
+  geom_violin(alpha=0.5) + geom_boxplot(width=0.1) + 
+  labs(x = NULL, y = "Average Duration (Milliseconds)") +
+  scale_fill_manual(values = c("Avg_Duration_First_Minute" = "#9BC3C6", "Avg_Duration_Last_Minute" = "#FDE780")) +
+  theme_minimal() +
+  ggtitle("Fixation Duration in First vs. Tenth Minute of Interaction") + ylim(150,750) + theme(legend.position = "none") +
+  scale_x_discrete(labels=c("Fist minute", "Tenth minute"))
+
+
+
+```
+
+```{r speed and distance}
+combined_data_grouped <- combined_data %>%
+  group_by(ParticipantNumber, Condition) %>%
+  summarise(
+    distMedianFirst2000 = median(head(Total.Distance..per.second.,60)), # Replace 'your_column_name'
+    distMedianLast2000 = median(tail(Total.Distance..per.second.,60)), # Replace 'your_column_name'
+    
+    spdMedianFirst2000 = median(head(Average.Speed..units.s.,60)), 
+    spdMedianLast2000 = median(tail(Average.Speed..units.s.,60)), 
+  )
+
+
+
+ggplot(combined_data_grouped, aes(y=spdMedianLast2000, x=Condition, color=Condition)) + geom_violin() + geom_boxplot(width=0.1) + theme_bw() 
+
+ 
+ggplot(combined_data_grouped, aes(y=spdMedianFirst2000, x=Condition, color=Condition)) + geom_violin() + geom_boxplot(width=0.1) + theme_bw() + ylim(500,1300)
+
+combined_data_grouped %>% group_by(Condition) %>% skim()
+
+ggplot(combined_data_grouped, aes(y=distMedianLast2000, x=Condition, color=Condition)) + geom_violin() + geom_boxplot(width=0.1) + theme_bw()
+
+ggplot(combined_data_grouped, aes(y=distMedianLast2000, x=Condition, color=Condition)) + geom_violin() + geom_boxplot(width=0.1) + geom_jitter(alpha=0.5,width = 0.1, height = 0.1)   + theme_bw() + ylim(c(600, 1500))
+
+
+shapiro.test(combined_data_grouped$distMedianLast2000)
+wilcox.test(distMedianLast2000~Condition, data=combined_data_grouped, paired=F)
+t.test(distMedianLast2000~Condition, data=combined_data_grouped, paired=F)
+
+
+
+wilcox.test(spdMedianLast2000~Condition, data=combined_data_grouped, paired=F)
+
+wilcox.test(spdMedianFirst2000~Condition, data=combined_data_grouped, paired=F)
+
+t.test(distMedianLast2000~Condition, data=combined_data_grouped, paired=F)
+t.test(spdMedianLast2000~Condition, data=combined_data_grouped, paired=F)
+
+
+wilcox.test(combined_data_grouped$spdMedianFirst2000,combined_data_grouped$spdMedianLast2000)
+
+
+t.test(combined_data_grouped$spdMedianFirst2000,combined_data_grouped$spdMedianLast2000)
+fix_combined_data_grouped<- gather(combined_data_grouped, key = "Minute_Type", value = "Average_Speed", spdMedianFirst2000, spdMedianLast2000)
+
+ggplot(fix_combined_data_grouped, aes(x = Minute_Type, y = Average_Speed, fill = Minute_Type)) +
+  geom_violin(alpha=0.5) + geom_boxplot(width=0.1) + 
+  labs(x = NULL, y = "Average Speed (Pixels)") +
+  scale_fill_manual(values = c("spdMedianFirst2000" = "#9BC3C6", "spdMedianLast2000" = "#FDE780")) +
+  theme_minimal() +
+  ggtitle("Saccade Speed in First vs. Tenth Minute of Interaction")  + theme(legend.position = "none") +
+  scale_x_discrete(labels=c("Fist minute", "Tenth minute")) + ylim(0, 1800)
+
+```
+
+```{r split screen analysis}
+shapiro.test(percentages$Left.Side)
+shapiro.test(percentages$Right.Side)
+
+wilcox.test(percentages$Left.Side,percentages$Right.Side)
+t.test(percentages$Left.Side,percentages$Right.Side, paired=F)        ######RESULT HERE
+
+t.test(Left.Side~Condition, data=percentages, paired=F)
+wilcox.test(Left.Side~Condition, data=percentages, paired=F)
+t.test(Right.Side~Condition, data=percentages, paired=F)
+wilcox.test(Right.Side~Condition, data=percentages, paired=F)
+
+percentages_long<- gather(percentages, key = "side", value = "average_time", Left.Side, Right.Side)
+ggplot(percentages_long, aes(x = side, y = average_time, fill = side)) +
+  geom_violin(alpha=0.5) + geom_boxplot(width=0.1) + 
+  labs(x = NULL, y = "Percentage of time spent on each side") +
+  scale_fill_manual(values = c("Left.Side" = "#9BC3C6", "Right.Side" = "#FDE780")) +
+  theme_minimal() +
+  ggtitle("Time spent on Discharge Letter vs. Form")  + theme(legend.position = "none") +
+  scale_x_discrete(labels=c("D. Letter", "Form")) + ylim(0, 100)
+```
+
+```{r fixation of P1}
+ggplot(fixation_p1, aes(x = fixation, y = duration)) +
+  geom_line() + ylim(0,1000) + geom_smooth() + xlim(0,500)
+
+ggplot(fixation_p2, aes(x = fixation, y = duration)) +
+  geom_line() + ylim(0,1000) + geom_smooth() 
+
+ggplot(fixation_p3, aes(x = fixation, y = duration)) +
+  geom_line() + ylim(0,1000) + geom_smooth() + xlim(0,500) 
+
+ggplot(fixation_p4, aes(x = fixation, y = duration)) +
+  geom_line() + ylim(0,1200) + geom_smooth() + xlim(0,800) + theme_bw() +   labs(title = "Fixation duration over time",
+       x = "Fixation number",
+       y = "Duration")
+```
+
+```{r completeness rate}
+ggplot(completeness, aes(x=1, y=Percentage, color=as.factor(1))) + geom_violin() + geom_boxplot(width=0.3) + ylim(0,100) + theme_bw() 
+
+mean(completeness$Percentage)
+sd(completeness$Percentage)
+
+participant_numbers <- as.numeric(gsub("data_P", "", completeness$FileName))
+# Define conditions
+condition <- ifelse(participant_numbers %% 2 == 1, "P", "C")
+
+completeness$condition <- condition
+
+t.test(Percentage ~ condition, data=completeness)
+completeness %>% group_by(condition) %>% skim()
+
+completeness$permin <- completeness$Percentage * 136 / 10
+t.test(permin ~ condition, data=completeness)
+completeness %>% group_by(condition) %>% skim()
+
+```
+
+```{r fixation analysis individual}
+file_list <- list.files(path = "fixation", pattern = "*.csv", full.names = TRUE)
+# Create a function to read each file and add participant and condition columns
+read_and_label <- function(file_path) {
+    # Extract participant number from the file name
+    participant_number <- as.integer(str_extract(basename(file_path), "\\d+"))
+    
+    # Read the CSV file
+    df <- read_csv(file_path)
+    
+    # Add the participant number column
+    df <- df %>% mutate(participant = participant_number)
+    
+    # Add the condition column
+    df <- df %>% mutate(condition = ifelse(participant_number %% 2 == 1, "P", "C"))
+    
+    return(df)
+}
+# Apply the function to all files and combine them into one data frame
+combined_df <- file_list %>% 
+    map_df(~ read_and_label(.))
+# Check the combined data frame
+glimpse(combined_df)
+
+fixation_summary <- combined_df %>%
+    group_by(participant,condition) %>%
+    summarise(
+        amount_fixations = n(),
+        percent_below_150ms = sum(duration < 150) / n() * 100,
+        percent_150ms_to_900ms = sum(duration >= 150 & duration <= 900) / n() * 100,
+        percent_above_900ms = sum(duration > 900) / n() * 100,
+        avg_duration_short = mean(duration[duration < 150], na.rm = TRUE),
+        median_duration_short = median(duration[duration < 150], na.rm = TRUE),
+        avg_duration_medium = mean(duration[duration >= 150 & duration <= 900], na.rm = TRUE),
+        median_duration_medium = median(duration[duration >= 150 & duration <= 900], na.rm = TRUE),
+        avg_duration_long = mean(duration[duration > 900], na.rm = TRUE),
+        median_duration_long = median(duration[duration > 900], na.rm = TRUE)
+    )
+
+fixation_summary %>% group_by(condition) %>% skim()
+
+perform_stat_tests <- function(data, column) {
+   # Separate data by condition
+    data_P <- data %>% filter(condition == "P")
+    data_C <- data %>% filter(condition == "C")
+    
+    # Shapiro-Wilk test for normality on each condition
+    shapiro_test_P <- shapiro.test(data_P[[column]])
+    shapiro_test_C <- shapiro.test(data_C[[column]])
+    
+    # Print Shapiro-Wilk test results
+    print(paste("Shapiro-Wilk test for", column, "in condition P:"))
+    print(shapiro_test_P)
+    print(paste("Shapiro-Wilk test for", column, "in condition C:"))
+    print(shapiro_test_C)
+    
+    # Perform the appropriate test based on normality
+    if (shapiro_test_P$p.value > 0.05 & shapiro_test_C$p.value > 0.05) {
+        # Perform unpaired t-test
+        test_result <- t.test(reformulate('condition', column), data = data)
+        test_type <- "t-test"
+    } else {
+        # Perform Wilcoxon rank-sum test
+        test_result <- wilcox.test(reformulate('condition', column), data = data)
+        test_type <- "Wilcoxon rank-sum test"
+    }
+    
+    # Print the test result
+    print(paste("Result of", test_type, "for", column, ":"))
+    print(test_result)
+    
+    return(list(shapiro_test_P = shapiro_test_P, shapiro_test_C = shapiro_test_C, test_result = test_result, test_type = test_type))
+}
+
+# Perform the tests for each column of interest
+results_amount_fixations <- perform_stat_tests(fixation_summary, "amount_fixations")
+results_percent_below_150ms <- perform_stat_tests(fixation_summary, "percent_below_150ms")
+results_percent_150ms_to_900ms <- perform_stat_tests(fixation_summary, "percent_150ms_to_900ms")
+results_percent_above_900ms <- perform_stat_tests(fixation_summary, "percent_above_900ms")
+
+results_amount_fixations <- perform_stat_tests(fixation_summary, "avg_duration_short")
+results_percent_below_150ms <- perform_stat_tests(fixation_summary, "median_duration_short")
+results_percent_150ms_to_900ms <- perform_stat_tests(fixation_summary, "avg_duration_medium")
+results_percent_above_900ms <- perform_stat_tests(fixation_summary, "median_duration_medium")
+results_amount_fixations <- perform_stat_tests(fixation_summary, "avg_duration_long")
+results_percent_below_150ms <- perform_stat_tests(fixation_summary, "median_duration_long")
+
+```
+
+```{r fixation correlation}
+
+# Calculate the Usefulness scale
+df <- df %>%
+    mutate(
+        Usefulness = (ACC1 + ACC3 + ACC5 + ACC7 + ACC9) / 5
+    )
+
+# Calculate the Satisfying scale
+df <- df %>%
+    mutate(
+        Satisfying = (ACC2 + ACC4 + ACC6 + ACC8) / 4
+    )
+
+df <- df %>% rename(participant = Participant)
+df <- df %>% rename(condition = Conditon)
+
+merged_df <- merge(fixation_summary, df, by = c("participant", "condition"))
+merged_df <- merge(merged_df, saccades, by = c("participant", "condition"))
+merged_df <- merge(merged_df, blinks, by = c("participant", "condition"))
+
+df_filtered <- merged_df %>% select(-condition,-participant,-Saccade.velocity)
+# Calculate the correlation matrix and p-values
+correlation_results <- rcorr(as.matrix(df_filtered))
+
+# Extract the correlation matrix
+correlation_matrix <- correlation_results$r
+
+# Extract the p-values matrix
+p_values_matrix <- correlation_results$P
+
+# Define significance level
+significance_level <- 0.09
+
+# Extract the names of the columns
+col_names <- colnames(df_filtered)
+
+# Initialize a list to store significant correlations
+significant_correlations_list <- list()
+
+# Loop through the correlation matrix to find significant correlations
+for (i in 1:(ncol(correlation_matrix) - 1)) {
+  for (j in (i + 1):ncol(correlation_matrix)) {
+    if (!is.na(p_values_matrix[i, j]) && p_values_matrix[i, j] < significance_level) {
+      significant_correlations_list <- append(significant_correlations_list, list(
+        list(
+          var1 = col_names[i],
+          var2 = col_names[j],
+          r_value = correlation_matrix[i, j],
+          p_value = p_values_matrix[i, j]
+        )
+      ))
+    }
+  }
+}
+
+# Convert the list to a dataframe for better readability
+significant_correlations_df <- do.call(rbind, lapply(significant_correlations_list, as.data.frame))
+
+# Display the dataframe of significant correlations
+print("Significant correlations:")
+print(significant_correlations_df)
+```
+
+```{r predictors}
+# Assuming merged_df is your dataframe
+pred_df <- merged_df %>% select(-ACC1, -ACC2, -ACC3, -ACC4, -ACC5, -ACC6, -ACC7, -ACC8, -ACC9, -Satisfying, -median_duration_short,-median_duration_medium,-median_duration_long,-SA1,-SA2,-SA4,-SA5,-SA6)
+
+
+# Define the list of predictors, excluding the 'participant' column
+predictors <- setdiff(names(pred_df), "participant")
+
+# Define the list of dependent variables, excluding 'participant' and 'condition'
+dependent_vars <- setdiff(names(pred_df), c("participant", "condition"))
+
+# Define the function to perform lm() analysis and identify significant predictors
+find_significant_predictors <- function(data, dependent_vars, predictors) {
+    results <- list()
+    
+    for (dv in dependent_vars) {
+        # Exclude the current dependent variable from predictors
+        current_predictors <- setdiff(predictors, dv)
+        
+        # Construct the formula
+        formula <- as.formula(paste(dv, "~", paste(current_predictors, collapse = " + ")))
+        model <- lm(formula, data = data)
+        summary_model <- summary(model)
+        
+        # Extract significant predictors
+        significant_predictors <- summary_model$coefficients %>%
+            as.data.frame() %>%
+            rownames_to_column(var = "predictor") %>%
+            filter(`Pr(>|t|)` < 0.05) %>%
+            select(predictor, Estimate, `Pr(>|t|)`)
+        
+        # Add the dependent variable to the results
+        results[[dv]] <- significant_predictors
+    }
+    
+    return(results)
+}
+
+# Run the function on the merged_df
+significant_predictors <- find_significant_predictors(merged_df, dependent_vars, predictors)
+
+# Print the results
+print(significant_predictors)
+
+summary(lm(percent_150ms_to_900ms ~ condition + SA3, data=merged_df))
+summary(lm(percent_150ms_to_900ms ~ condition, data=merged_df))
+```
+
+```{r fixation visuals}
+ggplot(merged_df, aes(x=condition, y=percent_below_150ms, color=as.factor(condition))) + geom_violin() + geom_boxplot(width=0.3) + ylim(0,50) + theme_bw()
+ggplot(merged_df, aes(x=condition, y=percent_150ms_to_900ms, color=as.factor(condition))) + geom_violin() + geom_boxplot(width=0.3) + ylim(0,100) + theme_bw() 
+ggplot(merged_df, aes(x=condition, y=percent_above_900ms, color=as.factor(condition))) + geom_violin() + geom_boxplot(width=0.3) + ylim(0,10) + theme_bw() 
+
+
+
+ggplot(merged_df, aes(x=SA1_SA2_mean, y=percent_above_900ms, color=as.factor(condition))) + geom_jitter() + geom_smooth(method="lm", se=F) + theme_bw() + xlab("Agency (interactivity)") + ylab("Percentage of long fixations")+ labs(color='Condition') + theme(legend.position="top")
+#THERE IS SOMETHING TO EXPLORE HERE. MAYBE A CORR IN THE COLOUR CONDITION
+ggplot(merged_df, aes(x=SA1_SA2_mean, y=percent_150ms_to_900ms, color=as.factor(condition))) + geom_jitter() + geom_smooth(method="lm", se=F)
+ggplot(merged_df, aes(x=SA1_SA2_mean, y=percent_below_150ms, color=as.factor(condition))) + geom_jitter() + geom_smooth(method="lm", se=F)
+
+ggplot(merged_df, aes(x=SA3_SA4_mean, y=percent_below_150ms, color=as.factor(condition))) + geom_jitter() + geom_smooth(method="lm", se=F)
+ggplot(merged_df, aes(x=SA3_SA4_mean, y=percent_150ms_to_900ms, color=as.factor(condition))) + geom_jitter() + geom_smooth(method="lm", se=F)
+
+#MAYBE SOMETHING HERE TOO
+ggplot(merged_df, aes(x=SA3_SA4_mean, y=avg_duration_medium, color=as.factor(condition))) + geom_jitter() + geom_smooth(method="lm", se=F)
+ggplot(merged_df, aes(x=SA1_SA2_mean, y=avg_duration_medium, color=as.factor(condition))) + geom_jitter() + geom_smooth(method="lm", se=F)
+ggplot(merged_df, aes(x=TLX1, y=avg_duration_medium, color=as.factor(condition))) + geom_jitter() + geom_smooth(method="lm", se=F)
+ggplot(merged_df, aes(x=TLX2, y=avg_duration_medium, color=as.factor(condition))) + geom_jitter() + geom_smooth(method="lm", se=F)
+ggplot(merged_df, aes(x=TLX3, y=avg_duration_medium, color=as.factor(condition))) + geom_jitter() + geom_smooth(method="lm", se=F)
+ggplot(merged_df, aes(x=TLX4, y=median_duration_medium, color=as.factor(condition))) + geom_jitter() + geom_smooth(method="lm", se=F)
+
+ggplot(merged_df, aes(x=TLX4, y=avg_duration_long, color=as.factor(condition))) + geom_jitter() + geom_smooth(method="lm", se=F)
+
+merged_df$condition <- factor(merged_df$condition, levels = c("C", "P"), labels = c("Colour only", "Colour with value"))
+
+summary_data <- merged_df %>%
+  group_by(condition) %>%
+  summarise(
+    mean_below_150ms = mean(percent_below_150ms),
+    mean_150ms_to_900ms = mean(percent_150ms_to_900ms),
+    mean_above_900ms = mean(percent_above_900ms),
+    se_below_150ms = sd(percent_below_150ms) / sqrt(n()),
+    se_150ms_to_900ms = sd(percent_150ms_to_900ms) / sqrt(n()),
+    se_above_900ms = sd(percent_above_900ms) / sqrt(n())
+  )
+
+# Reshape the dataframe to long format
+data_long <- summary_data %>%
+  pivot_longer(cols = starts_with("mean_"), names_to = "fixation_type", values_to = "percent") %>%
+  pivot_longer(cols = starts_with("se_"), names_to = "error_type", values_to = "error") %>%
+  filter(substr(fixation_type, 6, nchar(fixation_type)) == substr(error_type, 4, nchar(error_type)))
+
+# Order the bars by short, medium, and long fixations
+data_long$fixation_type <- factor(data_long$fixation_type, 
+                                  levels = c("mean_below_150ms", "mean_150ms_to_900ms", "mean_above_900ms"),
+                                  labels = c("Short Fixations", "Medium Fixations", "Long Fixations"))
+
+# Define pastel colors
+pastel_colors <- c("Colour only" = "#56B4E9",  # Light Blue
+                   "Colour with value" = "#D55E00")  # Light Green
+
+# Create the plot
+ggplot(data_long, aes(x = fixation_type, y = percent, fill = condition)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.9), width = 0.8) +
+  geom_errorbar(aes(ymin = percent - error, ymax = percent + error), 
+                position = position_dodge(width = 0.9), width = 0.25) +
+  geom_text(aes(label = round(percent, 1)), 
+            position = position_dodge(width = 0.9), 
+            vjust = -0.5) +
+  scale_fill_manual(values = pastel_colors) +
+  labs(x = "Fixation Type", y = "Percentage", fill = "Condition") +
+  theme_minimal() +
+  theme(legend.position = "top") + ylim(c(0,100))
+
+ggplot(merged_df, aes(x=SA1_SA2_mean, y=avg_duration_medium, color=as.factor(condition))) + geom_jitter() + geom_smooth(method="lm", se=F) + theme_bw() + xlab("Agency (interactivity)") + ylab("Average duration of medium fixations")+ labs(color='Condition') + theme(legend.position="top")
+
+ggsave("fixation_ratios.PNG", dpi=1000)
+```
+
+```{r data compare}
+perform_analysis <- function(df) {
+  # Iterate through each column (excluding 'condition' and 'participant')
+  results <- list()
+  for (col_name in names(df)) {
+    if (col_name != "condition" && col_name != "participant") {
+      # Split data by condition
+      condition_levels <- unique(df$condition)
+      data1 <- df %>% filter(condition == condition_levels[1]) %>% select(col_name)
+      data2 <- df %>% filter(condition == condition_levels[2]) %>% select(col_name)
+      
+      # Perform Shapiro-Wilk test for normality
+      shapiro_test1 <- shapiro.test(data1[[col_name]])
+      shapiro_test2 <- shapiro.test(data2[[col_name]])
+      
+      # Check normality
+      if (shapiro_test1$p.value > 0.05 && shapiro_test2$p.value > 0.05) {
+        # Both samples are normally distributed: use t-test
+        t_test <- t.test(data1[[col_name]], data2[[col_name]])
+        result <- list(test = "t-test", p.value = t_test$p.value, t.value = t_test$statistic, df = t_test$parameter)
+      } else {
+        # At least one sample is not normally distributed: use Wilcoxon test
+        wilcox_test <- wilcox.test(data1[[col_name]], data2[[col_name]])
+        result <- list(test = "wilcoxon", p.value = wilcox_test$p.value, W = wilcox_test$statistic)
+      }
+      
+      # Save result
+      results[[col_name]] <- result
+    }
+  }
+  
+  return(results)
+}
+
+# Example usage
+merged_df <- merged_df %>% select(-Saccade.velocity)
+results <- perform_analysis(merged_df)
+
+# Print the results
+for (col_name in names(results)) {
+  result <- results[[col_name]]
+  cat("\nColumn:", col_name, "\n")
+  cat("Test:", result$test, "\n")
+  cat("P-value:", result$p.value, "\n")
+  if (result$test == "t-test") {
+    cat("T-value:", result$t.value, "\n")
+    cat("Degrees of Freedom:", result$df, "\n")
+  } else {
+    cat("W-value:", result$W, "\n")
+  }
+}
+```

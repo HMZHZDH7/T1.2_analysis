@@ -1,0 +1,108 @@
+---
+title: "perf_analysis"
+author: "HZ"
+date: '2024-07-13'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(scipen=999)
+
+library(ggplot2)
+library(tidymodels)
+library(skimr)
+library(modelr)
+library(stringr)
+library(corrplot)
+library(RColorBrewer)
+library("PerformanceAnalytics")
+library("Hmisc")
+library(lubridate)
+library(ggbeeswarm)
+library(GGally)
+library(effsize)
+library(magrittr)
+library(cowplot)
+library(ggpubr)
+library(ggpmisc)
+library(tibble)
+
+library(quantreg)
+library(psych)
+library(ggExtra)
+library(tidyverse)
+
+library(dplyr)
+library(lme4)
+
+```
+
+
+```{r Load data}
+data_list <- list()
+for (i in 1:22) {
+  file_name <- paste0("logging/data_p", i, ".csv")
+  temp_data <- read.csv(file_name)
+  temp_data$participant <- i
+  temp_data$condition <- ifelse(i %% 2 == 1, "p", "c")
+  data_list[[i]] <- temp_data
+}
+final_data <- bind_rows(data_list)
+final_filtered <- final_data %>% filter(Edited.1 == "TRUE")
+
+for (i in 1:22) {
+  file_name <- paste0("Event/P", i, ".csv")
+  temp_data <- read.csv(file_name,sep = ";")
+  temp_data$participant <- i
+  temp_data$condition <- ifelse(i %% 2 == 1, "p", "c")
+  data_list[[i]] <- temp_data
+}
+event_data <- bind_rows(data_list)
+```
+
+```{r num of edited}
+# Convert the Edited.1 column to logical
+final_data$Edited.1 <- as.logical(final_data$Edited.1)
+
+# Count the number of TRUE values in Edited.1 per participant
+true_counts <- final_data %>%
+  group_by(participant,condition) %>%
+  summarise(true_count = sum(Edited.1, na.rm = TRUE))
+
+# Print the count of TRUE values per participant
+print(true_counts)
+mean(true_counts$true_count)
+sd(true_counts$true_count)
+
+true_counts %>% group_by(condition) %>% skim
+wilcox.test(true_count~condition,data=true_counts,paired=F)
+
+```
+```{r time analysis}
+filtered_data <- event_data %>%
+  filter(Event == "click" & !grepl("iterator", Element, ignore.case = TRUE))
+
+# Convert the Timestamp column to datetime format
+filtered_data$Timestamp <- ymd_hms(filtered_data$Timestamp)
+
+# Extract the minute from the Timestamp
+filtered_data <- filtered_data %>%
+  mutate(minute = floor_date(Timestamp, "minute"))
+
+# Count the number of "click" events per minute per participant
+click_counts_minute <- filtered_data %>%
+  group_by(participant, minute,condition) %>%
+  summarise(click_count = n(), .groups = 'drop')
+
+click_counts <- filtered_data %>%
+  group_by(participant,condition) %>%
+  summarise(click_count = n(), .groups = 'drop')
+
+# Print the count of "click" events per minute per participant
+print(click_counts)
+click_counts_minute %>% group_by(condition) %>% skim
+
+
+```
+
